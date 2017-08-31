@@ -37,7 +37,8 @@
 		messageStepMismatch: 'Please select a valid value.',
 		messageRangeOverflow: 'Please select a value that is no more than {max}.',
 		messageRangeUnderflow: 'Please select a value that is no less than {min}.',
-		messageGeneric: 'The value you entered for this field is invalid.',
+        messageGeneric: 'The value you entered for this field is invalid.',
+		customValidationMessages: {},
 
 		// Form Submission
 		disableSubmit: false,
@@ -131,6 +132,30 @@
 		return null;
 	};
 
+    /**
+     * Try to get custom validation message for element and it's validity state
+     * @private
+     * @param  {Object} localSettings           Local settings of scope
+     * @param  {Element} elem                   Current input element
+     * @param  {String} validityState   Validity state of current element
+     */
+    var getErrorMessage = function (localSettings, elem, validityState) {
+
+        if (!localSettings.customValidationMessages)
+            return null;
+
+        if (!elem.getAttribute('id'))
+            return null;
+
+        if (!localSettings.customValidationMessages[elem.getAttribute('id')])
+            return null;
+
+        if (localSettings.customValidationMessages[elem.getAttribute('id')][validityState])
+            return localSettings.customValidationMessages[elem.getAttribute('id')][validityState];
+
+        return null;
+    }
+
 	/**
 	 * Validate a form field
 	 * @public
@@ -147,42 +172,54 @@
 		if (field.disabled || field.type === 'file' || field.type === 'reset' || field.type === 'submit' || field.type === 'button') return;
 
 		// Get validity
-		var validity = field.validity;
+        var validity = field.validity;
 
 		// If valid, return null
-		if (validity.valid) return;
+        if (validity.valid) return;
 
 		// If field is required and empty
-		if (validity.valueMissing) return localSettings.messageValueMissing;
+        if (validity.valueMissing) return getErrorMessage(localSettings, field, 'messageValueMissing') || localSettings.messageValueMissing;
 
 		// If not the right type
 		if (validity.typeMismatch) {
 
 			// Email
-			if (field.type === 'email') return localSettings.messageTypeMismatchEmail;
+            if (field.type === 'email') return getErrorMessage(localSettings, field, 'messageTypeMismatchEmail') || localSettings.messageTypeMismatchEmail;
 
 			// URL
-			if (field.type === 'url') return localSettings.messageTypeMismatchURL;
+            if (field.type === 'url') return getErrorMessage(localSettings, field, 'messageTypeMismatchURL') || localSettings.messageTypeMismatchURL;
 
 		}
 
 		// If too short
-		if (validity.tooShort) return localSettings.messageTooShort.replace('{minLength}', field.getAttribute('minLength')).replace('{length}', field.value.length);
+		if (validity.tooShort) {
+            var message = getErrorMessage(localSettings, field, 'messageTooShort') || localSettings.messageTooShort;
+            return message.replace('{minLength}', field.getAttribute('minLength')).replace('{length}', field.value.length);
+		}
 
 		// If too long
-		if (validity.tooLong) return localSettings.messageTooLong.replace('{minLength}', field.getAttribute('maxLength')).replace('{length}', field.value.length);
+		if (validity.tooLong) {
+            var message = getErrorMessage(localSettings, field, 'messageTooLong') || localSettings.messageTooLong;
+            return message.replace('{minLength}', field.getAttribute('maxLength')).replace('{length}', field.value.length);
+		}
 
 		// If number input isn't a number
-		if (validity.badInput) return localSettings.messageBadInput;
+        if (validity.badInput) return getErrorMessage(localSettings, field, 'messageBadInput') || localSettings.messageBadInput;
 
 		// If a number value doesn't match the step interval
-		if (validity.stepMismatch) return localSettings.messageStepMismatch;
+        if (validity.stepMismatch) return getErrorMessage(localSettings, field, 'messageStepMismatch') || localSettings.messageStepMismatch;
 
 		// If a number field is over the max
-		if (validity.rangeOverflow) return localSettings.messageRangeOverflow.replace('{max}', field.getAttribute('max'));
+		if (validity.rangeOverflow) {
+            var message = getErrorMessage(localSettings, field, 'messageRangeOverflow') || localSettings.messageRangeOverflow;
+            return message.replace('{max}', field.getAttribute('max'));
+		}
 
 		// If a number field is below the min
-		if (validity.rangeUnderflow) return localSettings.messageRangeUnderflow.replace('{min}', field.getAttribute('min'));
+        if (validity.rangeUnderflow) {
+            var message = getErrorMessage(localSettings, field, 'messageRangeUnderflow') || localSettings.messageRangeUnderflow;
+            return message.replace('{min}', field.getAttribute('min'));
+		}
 
 		// If pattern doesn't match
 		if (validity.patternMismatch) {
@@ -191,12 +228,11 @@
 			if (field.hasAttribute('title')) return field.getAttribute('title');
 
 			// Otherwise, generic error
-			return localSettings.messagePatternMismatch;
-
+            return getErrorMessage(localSettings, field, 'messagePatternMismatch') || localSettings.messagePatternMismatch;
 		}
 
 		// If all else fails, return a generic catchall error
-		return localSettings.messageGeneric;
+        return getErrorMessage(localSettings, field, 'messageGeneric') || localSettings.messageGeneric;
 
 	};
 
