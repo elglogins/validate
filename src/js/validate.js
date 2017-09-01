@@ -38,7 +38,12 @@
 		messageRangeOverflow: 'Please select a value that is no more than {max}.',
 		messageRangeUnderflow: 'Please select a value that is no less than {min}.',
         messageGeneric: 'The value you entered for this field is invalid.',
+
+        // Custom Validation Messages
 		customValidationMessages: {},
+
+        // Custom Validators
+        customValidators: {},
 
 		// Form Submission
 		disableSubmit: false,
@@ -154,7 +159,32 @@
             return localSettings.customValidationMessages[elem.getAttribute('id')][validityState];
 
         return null;
-    }
+    };
+
+    /**
+     * Validate element using users custom defined validators if possible
+     * Return string error message or null, if element state is valid
+     * @private
+     * @param  {Object} localSettings   Local settings of scope
+     * @param  {Element} elem           Current input element
+     */
+    var validateUsingCustomValidators = function (localSettings, elem) {
+
+        if (!elem.getAttribute('id'))
+            return null;
+
+        if (!localSettings.customValidators[elem.getAttribute('id')])
+            return null;
+
+        // loop through validators
+        for (var index = 0; index < localSettings.customValidators[elem.getAttribute('id')].length; index++) {
+            var errorMessage = localSettings.customValidators[elem.getAttribute('id')][index](localSettings, elem);
+
+            if (errorMessage) {
+                return errorMessage;
+            }
+        }
+    };
 
 	/**
 	 * Validate a form field
@@ -173,6 +203,13 @@
 
 		// Get validity
         var validity = field.validity;
+
+	    // Validate element using users custom validators
+        if (localSettings.customValidators) {
+	        var customValidationResponse = validateUsingCustomValidators(localSettings, field);
+	        if (customValidationResponse)
+	            return customValidationResponse;
+	    }
 
 		// If valid, return null
         if (validity.valid) return;
