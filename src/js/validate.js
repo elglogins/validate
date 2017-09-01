@@ -41,6 +41,7 @@
 
         // Custom Validation Messages
 		customValidationMessages: {},
+		validationMessageElement: null,
 
         // Custom Validators
         customValidators: {},
@@ -144,7 +145,6 @@
      * @param  {Element} elem                   Current input element
      * @param  {String} validityState   Validity state of current element
      */
-    var getErrorMessage = function (localSettings, elem, validityState) {
 
         if (!localSettings.customValidationMessages)
             return null;
@@ -307,11 +307,16 @@
 		var id = field.id || field.name;
 		if (!id) return;
 
-		// Check if error message field already exists
-		// If not, create one
+		// Ensure that form is set on field
+        if (!field.form) {
+            field.form = getClosest(field, 'form');
+	    }
+
+	    // Check if error message field already exists
+	    // If not, create one
 		var message = field.form.querySelector('.' + localSettings.errorClass + '#error-for-' + id );
 		if (!message) {
-			message = document.createElement('div');
+			message = document.createElement(localSettings.validationMessageElement || 'div');
 			message.className = localSettings.errorClass;
 			message.id = 'error-for-' + id;
 
