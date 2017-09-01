@@ -145,6 +145,7 @@
      * @param  {Element} elem                   Current input element
      * @param  {String} validityState   Validity state of current element
      */
+    var getErrorMessage = function (localSettings, elem, validityState) {
 
         if (!localSettings.customValidationMessages)
             return null;
