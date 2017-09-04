@@ -289,6 +289,11 @@
 		// Before show error callback
 		localSettings.beforeShowError(field, error);
 
+	    // If error is empty, set missing value
+        if (!error || error.length === 0) {
+            error = localSettings.messageValueMissing;
+        }
+
 		// Add error class to field
 		field.classList.add(localSettings.fieldClass);
 
@@ -385,7 +390,12 @@
 
 		// Get field id or name
 		var id = field.id || field.name;
-		if (!id) return;
+        if (!id) return;
+
+	    // Ensure that form is set on field
+	    if (!field.form) {
+	        field.form = getClosest(field, 'form');
+	    }
 
 		// Check if an error message is in the DOM
 		var message = field.form.querySelector('.' + localSettings.errorClass + '#error-for-' + id + '');
