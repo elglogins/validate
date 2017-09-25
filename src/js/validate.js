@@ -45,6 +45,7 @@
 
         // Custom Validators
         customValidators: {},
+        validateHiddenFields: true,
 
 		// Form Submission
 		disableSubmit: false,
@@ -201,6 +202,15 @@
 
 		// Don't validate submits, buttons, file and reset inputs, and disabled fields
 		if (field.disabled || field.type === 'file' || field.type === 'reset' || field.type === 'submit' || field.type === 'button') return;
+
+        // If options force to not validate invisible fields
+        if (localSettings.validateHiddenFields == false) {
+            // get and check fields visibility 
+            var isVisible = field.offsetWidth > 0 || field.offsetHeight > 0;
+
+            if (isVisible == false)
+                return;
+        }
 
 		// Get validity
         var validity = field.validity;
